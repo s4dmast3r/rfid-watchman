@@ -31,8 +31,6 @@ const DashboardContent = () => {
 
   const handleFiltersChange = (filters: AttendanceFilters) => {
     setAttendanceFilters(filters);
-    // In a real app, this would trigger a new query with filters
-    // For now, we'll just trigger a refetch
     refetchAttendance();
   };
 
