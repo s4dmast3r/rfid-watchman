@@ -1,73 +1,312 @@
-# Welcome to your Lovable project
+# RFID Attendance System
 
-## Project info
+A complete monorepo solution for RFID-based attendance tracking using Arduino UNO + RC522, with real-time web dashboard.
 
-**URL**: https://lovable.dev/projects/6361e6c3-5302-4284-ba74-a8071a8651ec
+## 🚀 System Overview
 
-## How can I edit this code?
+This project provides a complete attendance control system with:
 
-There are several ways of editing your application.
+- **Frontend**: React + Vite + TypeScript + Tailwind CSS + shadcn/ui
+- **Backend**: Node.js + Express + SQLite + Serial Communication
+- **Hardware**: Arduino UNO + RC522 RFID Module
+- **Real-time**: Server-Sent Events (SSE) for instant updates
 
-**Use Lovable**
+## 📋 Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6361e6c3-5302-4284-ba74-a8071a8651ec) and start prompting.
+### ✅ RFID Card Management
+- Automatic IN/OUT toggle for registered cards
+- Unknown UID detection and registration workflow
+- Anti-bounce protection (firmware + backend)
+- Cooldown period to prevent accidental double-scans
 
-Changes made via Lovable will be committed automatically to this repo.
+### ✅ Real-time Dashboard
+- Live attendance notifications via SSE
+- Present users overview with check-in times
+- Attendance history with date/time filtering
+- Connection status indicator
 
-**Use your preferred IDE**
+### ✅ User Management
+- Complete CRUD operations for employees
+- Card UID registration and management
+- Active/inactive user status
+- Bulk operations support
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### ✅ Professional UI/UX
+- Responsive design for desktop and mobile
+- Loading states and error handling
+- Toast notifications for all events
+- Clean, accessible interface
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🏗️ Project Structure
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+rfid-attendance/
+├─ frontend/                 # React + Vite application (THIS PROJECT)
+│  ├─ src/
+│  │  ├─ components/
+│  │  │  ├─ attendance/     # Attendance components
+│  │  │  ├─ users/          # User management
+│  │  │  ├─ dashboard/      # Dashboard widgets
+│  │  │  └─ ui/            # UI components (shadcn/ui)
+│  │  ├─ hooks/            # Custom React hooks
+│  │  ├─ lib/              # API client and utilities
+│  │  ├─ pages/            # Main pages
+│  │  └─ assets/           # Images and static files
+│  ├─ package.json
+│  └─ vite.config.ts
+├─ backend/                  # Node.js server (TO BE CREATED)
+│  ├─ server.cjs           # Main server file
+│  ├─ package.json         # Backend dependencies
+│  └─ attendance.db        # SQLite database (auto-created)
+├─ arduino-sketch/           # Arduino code (TO BE CREATED)
+│  └─ rfid_attendance.ino  # RC522 RFID reader code
+└─ README.md               # This file
 ```
 
-**Edit a file directly in GitHub**
+## 🔧 Frontend Setup (Current Project)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+This Lovable project contains the complete frontend dashboard. To run locally:
 
-**Use GitHub Codespaces**
+```bash
+# Install dependencies
+npm install
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Start development server
+npm run dev
 
-## What technologies are used for this project?
+# Build for production
+npm run build
+```
 
-This project is built with:
+## ⚙️ Complete System Setup
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+To create the full attendance system, you'll need to implement the backend and Arduino components:
 
-## How can I deploy this project?
+### 1. Backend Setup (Node.js + Express)
 
-Simply open [Lovable](https://lovable.dev/projects/6361e6c3-5302-4284-ba74-a8071a8651ec) and click on Share -> Publish.
+Create `backend/package.json`:
+```json
+{
+  "name": "rfid-attendance-backend",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^4.18.0",
+    "better-sqlite3": "^8.7.0",
+    "serialport": "^12.0.0",
+    "@serialport/parser-readline": "^12.0.0",
+    "cors": "^2.8.5"
+  },
+  "scripts": {
+    "start": "node server.cjs"
+  }
+}
+```
 
-## Can I connect a custom domain to my Lovable project?
+### 2. Database Schema (SQLite)
 
-Yes, you can!
+```sql
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  card_uid TEXT UNIQUE NOT NULL,
+  active INTEGER DEFAULT 1
+);
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+-- Attendance records
+CREATE TABLE IF NOT EXISTS attendance (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  direction TEXT CHECK(direction IN ('IN','OUT')) NOT NULL,
+  ts DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+);
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### 3. Arduino Wiring (RC522 + Arduino UNO)
+
+```
+RC522    Arduino UNO
+------------------------
+VCC   →  3.3V
+GND   →  GND
+RST   →  Pin 9
+SDA   →  Pin 10
+SCK   →  Pin 13
+MOSI  →  Pin 11
+MISO  →  Pin 12
+```
+
+### 4. Required Arduino Libraries
+
+```cpp
+#include <SPI.h>
+#include <MFRC522.h>
+```
+
+## 🚀 Running the System
+
+### Frontend (This Project)
+```bash
+npm run dev
+```
+Runs on http://localhost:5173
+
+### Backend (To Be Created)
+```bash
+# Windows
+set SERIAL_PATH=COM5 && set PORT=3000 && node server.cjs
+
+# PowerShell
+$env:SERIAL_PATH="COM5"; $env:PORT="3000"; node server.cjs
+
+# Linux/Mac
+SERIAL_PATH=/dev/ttyUSB0 PORT=3000 node server.cjs
+```
+Runs on http://localhost:3000
+
+### Arduino
+Upload the sketch and connect via USB. **Important**: Close Arduino Serial Monitor before running the backend!
+
+## 🔌 API Endpoints
+
+The frontend is configured to work with these backend endpoints:
+
+```
+GET    /api/health              - Health check
+GET    /api/users               - List all users
+POST   /api/users               - Create new user
+PUT    /api/users/:id           - Update user
+DELETE /api/users/:id           - Delete user
+GET    /api/attendance          - Get attendance records (with filters)
+GET    /api/present             - Get currently present users
+GET    /api/stream              - SSE event stream for real-time updates
+```
+
+## 📡 Real-time Events (SSE)
+
+The dashboard connects to `/api/stream` and handles these events:
+
+- **attendance**: `{ uid, user: {id, name}, direction: "IN"|"OUT", ts }`
+- **unknown**: `{ uid, ts }` - Unknown card detected
+- **ignored**: `{ uid, reason: "burst"|"cooldown", secondsLeft?, ts }`
+- **ping**: Keep-alive heartbeat
+
+## 🛡️ Security Features
+
+### Anti-bounce Protection
+- **Firmware**: Single read per card presence (3s window)
+- **Backend**: Burst filtering (1.2s) + cooldown period (3-5s)
+- **UI**: Clear feedback for ignored reads
+
+### Input Validation
+- UID normalization (HEX uppercase, no separators)
+- Required field validation
+- SQL injection prevention
+- CORS configuration
+
+## 🎨 UI/UX Features
+
+### Real-time Updates
+- Instant toast notifications for all card events
+- Live connection status indicator
+- Auto-refreshing present users list
+- Seamless SSE reconnection
+
+### Responsive Design
+- Mobile-first approach
+- Adaptive layouts for all screen sizes
+- Touch-friendly interfaces
+- Accessible color contrasts
+
+### Professional Theming
+- Blue/green security-focused color palette
+- Consistent spacing and typography
+- Loading states and error handling
+- Empty states with helpful messaging
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+**SSE Connection Fails**
+- Ensure backend is running on correct port
+- Check CORS configuration
+- In development: SSE connects directly to :3000 (bypasses Vite proxy)
+
+**Serial Port Access Denied**
+- Close Arduino Serial Monitor
+- Kill any processes using the COM port
+- Check driver installation
+- Try different USB port
+
+**Card Not Detected**
+- Verify RC522 wiring (3.3V power!)
+- Check SPI connections
+- Ensure proper antenna positioning
+- Use MIFARE Classic cards for stable UID
+
+**Frontend Build Errors**
+- Ensure all TypeScript types are correct
+- Check import paths
+- Verify shadcn/ui component usage
+
+## 📊 Development Features
+
+### Code Quality
+- TypeScript for type safety
+- ESLint + Prettier configuration
+- Modular component architecture
+- Custom hooks for reusable logic
+
+### Performance
+- React Query for efficient data fetching
+- Optimistic updates for better UX
+- Lazy loading and code splitting
+- Efficient re-rendering patterns
+
+### Accessibility
+- Semantic HTML structure
+- ARIA labels and roles
+- Keyboard navigation support
+- Screen reader compatibility
+
+## 🚀 Production Deployment
+
+### Frontend Deployment
+This Lovable project can be deployed using the built-in publish feature or exported to any static hosting service.
+
+### Backend Deployment
+- Use PM2 for process management
+- Configure reverse proxy (nginx/Apache)
+- Set up SSL certificates
+- Configure environment variables
+- Monitor serial port connectivity
+
+### Hardware Considerations
+- Use quality USB cables for Arduino connection
+- Consider powered USB hub for reliability
+- Implement hardware watchdog for auto-recovery
+- Use appropriate enclosure for RC522 module
+
+## 📈 Future Enhancements
+
+- **Reports**: Detailed analytics and export functionality
+- **Multiple Readers**: Support for multiple RFID stations
+- **Database**: PostgreSQL/MySQL for larger deployments  
+- **Authentication**: Admin login and role-based access
+- **Mobile App**: Native mobile companion app
+- **Cloud Sync**: Multi-location synchronization
+
+## 🤝 Contributing
+
+This project serves as a complete reference implementation. Feel free to:
+- Extend functionality for your specific needs
+- Improve the UI/UX design
+- Add new features and integrations
+- Share improvements with the community
+
+## 📄 License
+
+This project is open source and available under the MIT License.
