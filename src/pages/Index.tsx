@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Activity, Settings } from "lucide-react";
-import { useAttendance } from "@/components/attendance/AttendanceProvider";
+import { AttendanceProvider, useAttendance } from "@/components/attendance/AttendanceProvider";
 import { ConnectionStatus } from "@/components/dashboard/ConnectionStatus";
 import { StatsOverview } from "@/components/dashboard/StatsOverview";
 import { AttendanceTable } from "@/components/attendance/AttendanceTable";
@@ -14,7 +14,7 @@ import { UserManagement } from "@/components/users/UserManagement";
 import { type AttendanceFilters } from "@/lib/api";
 import heroImage from "@/assets/hero-attendance.jpg";
 
-const Index = () => {
+const DashboardContent = () => {
   const {
     attendance,
     presentUsers,
@@ -188,6 +188,14 @@ const Index = () => {
         </div>
       </footer>
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <AttendanceProvider>
+      <DashboardContent />
+    </AttendanceProvider>
   );
 };
 
